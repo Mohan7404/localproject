@@ -4,11 +4,6 @@ trigger:
 pool:
   name: Default
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-
 stages:
 - stage: CI_Build
   displayName: 'Build Stage'
@@ -16,22 +11,18 @@ stages:
   - job: BuildOnVM
     displayName: 'Build on your VM'
     steps:
-    - task: NuGetToolInstaller@1
+    - script: |
+        echo "Hello from your VM!"
+        echo "Computer name: %COMPUTERNAME%"
+        echo "Current directory: %CD%"
+        dir
+      displayName: 'Test VM Connection'
     
-    - task: NuGetCommand@2
-      inputs:
-        restoreSolution: '$(solution)'
-    
-    - task: VSBuild@1
-      inputs:
-        solution: '$(solution)'
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
-    
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
+    - script: |
+        mkdir C:\TestDeployment 2>nul
+        echo "Test file created at %date% %time%" > C:\TestDeployment\test.txt
+        type C:\TestDeployment\test.txt
+      displayName: 'Create Test File on VM'
 
 - stage: CD_Deploy
   displayName: 'Deploy Stage'
@@ -45,16 +36,7 @@ stages:
       runOnce:
         deploy:
           steps:
-          - download: current
-            artifact: drop
-          
-          - task: CopyFiles@2
-            inputs:
-              SourceFolder: '$(Pipeline.Workspace)/drop'
-              Contents: '**'
-              TargetFolder: 'C:\MyDeployedApp'
-          
           - script: |
-              echo "Deployment completed to C:\MyDeployedApp"
-              dir C:\MyDeployedApp
-            displayName: 'Verify deployment'
+              echo "Deployment stage running on %COMPUTERNAME%"
+              dir C:\TestDeployment
+            displayName: 'Verify Test Deployment'
