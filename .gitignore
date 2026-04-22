@@ -1,0 +1,16 @@
+# Dependencies
+bin/
+obj/
+packages/
+.vs/
+
+# User-specific files
+*.user
+*.suo
+
+# Build folders
+[Dd]ebugPublic/
+[Rr]elease/
+
+# Config
+appsettings.Development.json
